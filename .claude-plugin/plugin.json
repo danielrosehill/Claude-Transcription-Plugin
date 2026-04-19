@@ -6,7 +6,7 @@
     "name": "Daniel Rosehill",
     "url": "https://github.com/danielrosehill"
   },
-  "repository": "https://github.com/danielrosehill/Claude-Transcription-plugin",
+  "repository": "https://github.com/danielrosehill/Claude-Transcription-Plugin",
   "license": "MIT",
   "keywords": ["transcription", "audio", "whisper", "gemini", "assemblyai", "denoise", "diarization"]
 }
