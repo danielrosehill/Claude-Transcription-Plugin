@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gemini-transcription": {
+      "command": "npx",
+      "args": ["-y", "gemini-transcription-mcp"],
+      "env": {
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
+      }
+    }
+  }
+}
