@@ -100,7 +100,7 @@ Render:
 typst compile <stem>.combined.typ <stem>.combined.pdf
 ```
 
-Use IBM Plex Sans (per Daniel's typst-document-generator convention). If not installed, fall back to the default Typst font.
+Use IBM Plex Sans if available; otherwise fall back to the default Typst font.
 
 ## Markdown → Typst conversion
 
