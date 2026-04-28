@@ -12,14 +12,14 @@ set -euo pipefail
 
 DENOISE=0
 TRIM_SILENCE=1
-MIN_GAP=2.5
+MAX_GAP=0.4
 OUT_DIR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --denoise)         DENOISE=1; shift ;;
     --no-silence-trim) TRIM_SILENCE=0; shift ;;
-    --min-gap)         MIN_GAP="$2"; shift 2 ;;
+    --max-gap)         MAX_GAP="$2"; shift 2 ;;
     --out-dir)         OUT_DIR="$2"; shift 2 ;;
     -h|--help)         sed -n '2,8p' "$0"; exit 0 ;;
     --) shift; break ;;
@@ -84,12 +84,12 @@ CURRENT="$NORMALISED"
 
 # Pass 4: silence collapse via silero-vad
 if [[ "$TRIM_SILENCE" == "1" ]]; then
-  echo "[preprocess] pass 3/3: silence collapse (silero-vad, min-gap=${MIN_GAP}s)"
+  echo "[preprocess] pass 3/3: silence cap (silero-vad, max-gap=${MAX_GAP}s)"
   COLLAPSED="$SCRATCH/collapsed.wav"
   STATS="$OUT_DIR/$STEM.vad-stats.json"
   uv run --quiet --with silero-vad --with soundfile --with numpy \
     "$(dirname "$0")/silence-collapse.py" \
-    --min-gap "$MIN_GAP" \
+    --max-gap "$MAX_GAP" \
     --stats "$STATS" \
     "$CURRENT" "$COLLAPSED"
   ffmpeg -y -hide_banner -loglevel error \
