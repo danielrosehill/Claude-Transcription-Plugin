@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+*.local
+config.local.json
+
+# Scratch / working dirs created by skills
+audio/raw/
+audio/processed/
+transcripts/
+context/extracted-*.md
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Python (used by some skills via uv run)
+__pycache__/
+*.pyc
+.venv/
+
+# Node (MCP server caches)
+node_modules/
