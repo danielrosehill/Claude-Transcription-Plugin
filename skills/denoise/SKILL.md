@@ -7,6 +7,22 @@ description: Remove background noise from an audio file. Cloud providers (Auphon
 
 Reduce background noise in a speech recording.
 
+## Before invoking — sanity check
+
+If the goal is **transcription**, denoising is usually not necessary. POC at
+https://github.com/danielrosehill/Crying-Baby-Audio-Scrub showed Whisper handles
+moderate background noise (e.g. baby crying) without preprocessing — the cleaned
+and uncleaned transcripts differed by only 5–6 word choices over 119 seconds.
+
+Reach for this skill when:
+
+- Severe noise is degrading even-for-humans intelligibility (wind, heavy traffic, music)
+- Audio is destined for human listening rather than ASR
+- ASR was tried on the raw audio and produced an unusable transcript
+
+For mild/moderate noise prepping for transcription, skip this skill — go directly
+to `preprocess-for-transcription` and then transcribe.
+
 ## Provider selection
 
 Read `~/.config/claude-transcription/config.json` for `denoise_provider` and `prefer_local`. If config missing, default to **Auphonic** (cheapest cloud option).
