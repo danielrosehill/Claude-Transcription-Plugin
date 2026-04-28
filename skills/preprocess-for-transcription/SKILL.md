@@ -14,7 +14,7 @@ Single orchestrator that takes a raw recording and emits a transcription-ready f
 | 1. Denoise | **off** (flag `--denoise`) | turn on for noisy field recordings, leave off for clean voice memos |
 | 2. Format normalise | **on** | mono, 16 kHz, opus 24k |
 | 3. Loudness normalise | **on** | EBU R128 via ffmpeg `loudnorm` |
-| 4. Silence collapse | **on** | silero-vad, only collapse silences > 2.5s, compress to 0.5s, preserve 0.3s head/tail |
+| 4. Silence cap | **on** | silero-vad detects speech, every gap capped at 0.4s max (no speech ever clipped). Sub-0.4s natural pauses pass through untouched. |
 
 Passes 2+3 run in a single ffmpeg invocation (one decode/encode). Pass 4 runs after.
 
@@ -30,96 +30,28 @@ Never overwrite — if `<stem>.preprocessed.opus` exists, suffix `.v2`, `.v3`, e
 
 ## Implementation
 
-### Pass 1 — denoise (optional)
+The full pipeline is shipped as a reusable script. **Invoke it directly** rather than reimplementing:
 
 ```bash
-# rnnoise via ffmpeg (zero extra deps if ffmpeg built with --enable-librnnoise)
-ffmpeg -i INPUT -af "arnndn=m=/path/to/model.rnnn" -c:a pcm_s16le DENOISED.wav
+scripts/preprocess-audio.sh [--denoise] [--no-silence-trim] [--max-gap SEC] [--out-dir DIR] INPUT
 ```
 
-If rnnoise model unavailable, fall back to:
-```bash
-ffmpeg -i INPUT -af "afftdn=nf=-25" DENOISED.wav
-```
+The script handles all four passes and writes `<stem>.preprocessed.opus` to the output dir.
 
-### Passes 2 + 3 — format + loudness (combined)
+Internals (for reference):
 
-Two-pass loudnorm is more accurate but slower. For voice memos, single-pass is fine:
+- **Pass 1 — denoise (optional)**: `ffmpeg -af "afftdn=nf=-25"`. Off by default. Enable with `--denoise` for noisy field recordings.
+- **Passes 2+3 — format + loudness (combined ffmpeg invocation)**: `ffmpeg -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ac 1 -ar 16000 -c:a pcm_s16le` (WAV intermediate so the python step doesn't need codec deps).
+- **Pass 4 — silence cap**: `scripts/silence-collapse.py` — silero-vad detects speech segments (ML, used inside Whisper / NeMo), then **every gap between speech segments is capped at `--max-gap` (default 0.4s)**. Speech is never clipped; only the dead air between speech is truncated. Sub-`max-gap` natural pauses pass through untouched.
+- **Final encode**: opus 24k.
 
-```bash
-ffmpeg -i INPUT \
-  -af "loudnorm=I=-16:TP=-1.5:LRA=11" \
-  -ac 1 -ar 16000 -c:a libopus -b:a 24k \
-  STEM.normalised.opus
-```
+Output stats (size, duration, removed seconds, removal %, speech segment count) are written to `<stem>.vad-stats.json`.
 
-Targets: `-16 LUFS` integrated, `-1.5 dBTP` true peak, `11 LU` range — standard for spoken content.
+### Why `--max-gap` cap and not `>min-gap collapse`
 
-### Pass 4 — silence collapse via silero-vad
+Earlier iteration used "collapse silences over 2.5s." That preserved natural cadence but felt loose because medium-length pauses (1–2.5s) survived intact. The cap-gap approach uniformly truncates every gap longer than the threshold, eliminating all dead air without ever cutting speech.
 
-silero is far more reliable than ffmpeg's energy threshold for soft dictation. Run via uv:
-
-```bash
-uv run --with silero-vad --with torchaudio --with soundfile python <<'PY'
-import torch, torchaudio, soundfile as sf, sys, json
-from silero_vad import load_silero_vad, get_speech_timestamps, collect_chunks
-
-INPUT  = "STEM.normalised.opus"
-OUTPUT = "STEM.preprocessed.opus"
-MIN_GAP_S = 2.5      # only collapse silences longer than this
-PAD_S     = 0.5      # replace long gaps with this much silence
-HEAD_TAIL_S = 0.3    # preserve at start/end
-
-model = load_silero_vad()
-wav, sr = torchaudio.load(INPUT)
-wav = wav.mean(dim=0)  # mono
-if sr != 16000:
-    wav = torchaudio.functional.resample(wav, sr, 16000); sr = 16000
-
-speech = get_speech_timestamps(wav, model, sampling_rate=sr, return_seconds=True)
-# Build output by concatenating speech regions, inserting PAD_S of silence between
-# any two regions whose gap exceeds MIN_GAP_S; keep gaps shorter than that intact.
-out = []
-prev_end = 0.0
-silence_pad = torch.zeros(int(PAD_S * sr))
-for i, seg in enumerate(speech):
-    start, end = seg["start"], seg["end"]
-    if i == 0:
-        # preserve a small head before first speech
-        head = max(0.0, start - HEAD_TAIL_S)
-        out.append(wav[int(head*sr):int(end*sr)])
-    else:
-        gap = start - prev_end
-        if gap > MIN_GAP_S:
-            out.append(silence_pad)
-            out.append(wav[int(start*sr):int(end*sr)])
-        else:
-            # keep the natural pause as-is
-            out.append(wav[int(prev_end*sr):int(end*sr)])
-    prev_end = end
-
-# preserve a small tail
-tail_end = min(len(wav)/sr, prev_end + HEAD_TAIL_S)
-if tail_end > prev_end:
-    out.append(wav[int(prev_end*sr):int(tail_end*sr)])
-
-result = torch.cat(out).numpy()
-sf.write("STEM.preprocessed.wav", result, sr)
-# stats
-total_in = len(wav)/sr
-total_out = len(result)/sr
-json.dump({
-    "input_seconds": round(total_in, 2),
-    "output_seconds": round(total_out, 2),
-    "removed_seconds": round(total_in - total_out, 2),
-    "speech_segments": len(speech),
-}, open("STEM.vad-stats.json", "w"), indent=2)
-PY
-
-# Re-encode to opus 24k
-ffmpeg -y -i STEM.preprocessed.wav -c:a libopus -b:a 24k STEM.preprocessed.opus
-rm STEM.preprocessed.wav STEM.normalised.opus
-```
+Validated on a 41-minute voice memo: cap@0.4s removes ~14% (vs ~3.6% with the old collapse>2.5s approach), no perceptible word clipping. Auto-editor was tried and rejected — its energy-threshold approach chops mid-syllable on quiet speech.
 
 ## Output report
 
@@ -137,7 +69,7 @@ Denoise:      skipped (use --denoise to enable)
 
 - `--denoise` — enable pass 1
 - `--no-silence-trim` — skip pass 4 (keep all silence)
-- `--silence-threshold <seconds>` — override default 2.5s
+- `--max-gap <seconds>` — override default 0.4s gap cap (lower = tighter)
 - `--out-dir <path>` — override default `audio/processed/`
 
 ## When to skip this skill
@@ -147,4 +79,8 @@ Denoise:      skipped (use --denoise to enable)
 
 ## Defaults locked against
 
-Tested against `~/repos/github/my-repos/Job-Search-Planning-0426/context/2026_04_28_16_05_22.opus` — a long voice memo with sip/think pauses. The 2.5s threshold preserves natural pacing while removing dead air.
+Validated 2026-04-28 against a 41-minute combined voice memo (Job-Search-Planning-0426). With `--max-gap 0.4`:
+- Input: 41:43, 20 MB
+- Output: 35:54, 5.9 MB
+- Removed 349s (13.9%) of dead air
+- No word clipping (silero is speech-aware, unlike energy-threshold tools)

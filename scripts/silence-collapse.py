@@ -28,12 +28,13 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("input", type=Path, help="Input WAV file (mono 16kHz preferred; downmix/resample applied if not)")
     p.add_argument("output", type=Path, help="Output WAV file (caller re-encodes if needed)")
-    p.add_argument("--min-gap", type=float, default=2.5,
-                   help="Only collapse silences longer than this (seconds)")
-    p.add_argument("--pad", type=float, default=0.5,
-                   help="Replace long silences with this much silence (seconds)")
+    p.add_argument("--max-gap", type=float, default=0.4,
+                   help="Cap every silence at this length (seconds). Gaps shorter than this are preserved as-is; longer gaps are truncated.")
     p.add_argument("--head-tail", type=float, default=0.3,
                    help="Preserve this much audio before first / after last speech (seconds)")
+    # legacy / no-op — kept for backward compat with old callers
+    p.add_argument("--min-gap", type=float, default=None, help=argparse.SUPPRESS)
+    p.add_argument("--pad", type=float, default=None, help=argparse.SUPPRESS)
     p.add_argument("--stats", type=Path, default=None,
                    help="Optional JSON file to write stats to")
     args = p.parse_args()
@@ -61,8 +62,8 @@ def main() -> int:
         sf.write(str(args.output), wav.numpy(), sr, subtype="PCM_16")
         return 0
 
-    pad_samples = int(args.pad * sr)
-    silence_pad = torch.zeros(pad_samples)
+    max_gap_samples = int(args.max_gap * sr)
+    cap_pad = torch.zeros(max_gap_samples)
 
     parts: list[torch.Tensor] = []
     head_start = max(0.0, speech[0]["start"] - args.head_tail)
@@ -70,12 +71,13 @@ def main() -> int:
 
     for prev, cur in zip(speech, speech[1:]):
         gap = cur["start"] - prev["end"]
-        if gap > args.min_gap:
-            parts.append(silence_pad)
-            parts.append(wav[int(cur["start"] * sr) : int(cur["end"] * sr)])
+        if gap > args.max_gap:
+            # truncate the gap to max_gap (no speech ever clipped)
+            parts.append(cap_pad)
         else:
-            # keep natural pause as-is
-            parts.append(wav[int(prev["end"] * sr) : int(cur["end"] * sr)])
+            # keep natural pause exactly as recorded
+            parts.append(wav[int(prev["end"] * sr) : int(cur["start"] * sr)])
+        parts.append(wav[int(cur["start"] * sr) : int(cur["end"] * sr)])
 
     tail_end = min(len(wav) / sr, speech[-1]["end"] + args.head_tail)
     if tail_end > speech[-1]["end"]:
@@ -92,8 +94,7 @@ def main() -> int:
         "removed_seconds": round(in_s - out_s, 2),
         "removed_pct": round(100 * (in_s - out_s) / in_s, 1) if in_s else 0,
         "speech_segments": len(speech),
-        "min_gap": args.min_gap,
-        "pad": args.pad,
+        "max_gap": args.max_gap,
     }
     if args.stats:
         args.stats.write_text(json.dumps(stats, indent=2))
