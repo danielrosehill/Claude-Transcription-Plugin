@@ -11,6 +11,16 @@ When the user invokes a skill that has both a cloud and a local option (denoise,
 
 Rationale: cloud providers are faster, higher-quality, and the cost is negligible at the user's volume. Local is a fallback for offline/privacy scenarios.
 
+## Transcription provider preference order
+
+When a skill needs a transcript and the user hasn't named a provider, choose in this order:
+
+1. **AssemblyAI** — preferred default. Word-level timestamps, speaker diarization, robust on long-form audio. Cost ~$0.37/hr.
+2. **Gemini MCP** (`gemini-transcription`) — fallback when AssemblyAI is unavailable, the user explicitly asks for it, or the audio is short enough that diarization is unnecessary.
+3. **Whisper local** — only if `prefer_local: true` or explicitly requested.
+
+Skills that orchestrate transcription (e.g. `transcribe-podcast`) should call AssemblyAI first and fall back to Gemini only on failure.
+
 ## Config file
 
 All skills read from `~/.config/claude-transcription/config.json`. Created/edited by the `configure` skill.
@@ -31,7 +41,7 @@ Schema:
 
 Defaults if config missing:
 - `denoise_provider`: `auphonic` (cheapest cloud option)
-- `transcription_provider`: `gemini`
+- `transcription_provider`: `assemblyai`
 - `default_output_dir`: directory of source audio file
 - `prefer_local`: `false`
 
