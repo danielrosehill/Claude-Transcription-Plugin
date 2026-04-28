@@ -11,7 +11,7 @@ Single orchestrator that takes a raw recording and emits a transcription-ready f
 
 | Pass | Default | Notes |
 |---|---|---|
-| 1. Denoise | **off** (flag `--denoise`) | turn on for noisy field recordings, leave off for clean voice memos |
+| 1. Denoise | **off** (flag `--denoise`) | rarely worth it for transcription — modern ASR is robust to moderate noise. See "Should I denoise?" below. |
 | 2. Format normalise | **on** | mono, 16 kHz, opus 24k |
 | 3. Loudness normalise | **on** | EBU R128 via ffmpeg `loudnorm` |
 | 4. Silence cap | **on** | silero-vad detects speech, every gap capped at 0.4s max (no speech ever clipped). Sub-0.4s natural pauses pass through untouched. |
@@ -76,6 +76,20 @@ Denoise:      skipped (use --denoise to enable)
 
 - Audio is already `mono 16kHz opus` and was recorded in a controlled environment → just transcribe directly
 - User explicitly wants raw audio sent (e.g. needs maximum fidelity for diarisation testing)
+
+## Should I denoise?
+
+**Probably not, for transcription.**
+
+POC at https://github.com/danielrosehill/Crying-Baby-Audio-Scrub tested DeepFilterNet vs raw audio (recording with background baby crying) into Whisper. The cleaned and uncleaned transcripts differed by only 5–6 word choices across 119 seconds. **Modern ASR (Whisper, AssemblyAI, Gemini) already handles moderate background noise.**
+
+Reach for `--denoise` (or the standalone `denoise` skill, which has stronger backends) only when:
+
+- The recording has *severe* noise — gusty wind, heavy traffic, music behind voice — that's clearly degrading even-for-humans intelligibility
+- The audio is destined for human listening, not ASR
+- You've actually tried ASR on the raw audio first and the transcript was unusable
+
+The `--denoise` flag here uses ffmpeg `afftdn` (basic, fast, ~no quality cost). For higher-quality denoise (DeepFilterNet, Auphonic, ElevenLabs Voice Isolator), use the standalone `denoise` skill *before* this preprocessor.
 
 ## Defaults locked against
 
