@@ -18,15 +18,26 @@ Prompt user for:
 - Subject (default: file's H1 heading or stem)
 - Body: either inline content or short cover note with the transcript as attachment
 
+When attaching the transcript file, the same staging rule as Drive applies — the GWS MCP runs on `ubuntuvm` and can't read workstation paths. Stage via MinIO (`python3 ~/.claude/lib/minio-stage.py …`) and pass the presigned URL as the attachment's `sourceUrl`. The send-* email skills cover this.
+
 ### Google Drive
 
-Use the `gws-personal` MCP:
-1. `create_folder` if user specifies a folder name (or reuse an existing one via `search`).
-2. `upload_file` with the local file path and target folder ID.
-3. If transcript is markdown and user wants it editable, use `create_google_doc` with the content instead.
-4. Optionally `share_file` if the user wants a link.
+Use the `gws-personal` MCP. **The GWS MCP runs on `ubuntuvm`** — it cannot read workstation paths like `/home/daniel/...`. The canonical upload path is **MinIO staging + `sourceUrl`**:
 
-Report back the Drive URL.
+1. Stage the transcript via MinIO to get a presigned URL:
+   ```bash
+   python3 ~/.claude/lib/minio-stage.py /path/to/transcript.md --expires 3600
+   # → {"url":"http://10.0.0.4:9100/mcp-staging/<uuid>/transcript.md?X-Amz-...",...}
+   ```
+2. `create_folder` if the user specified a new folder name (or reuse an existing one via `search`).
+3. Call `mcp__jungle-personal__gws-personal__upload_file` with `sourceUrl: <presigned URL>` and `parents: [<folder-id>]`. **Do not** pass a workstation `file_path`/`sourcePath` — that param is ubuntuvm-local only.
+4. If the transcript is markdown and the user wants it editable, use `create_google_doc` with the content inline instead.
+5. Optionally `share_file` if the user wants a shareable link.
+
+Report back the Drive `webViewLink`.
+
+**Do NOT** reach for `rclone`, `scp`, `gcloud`, `gdrive`, direct Drive API `curl`, or any other workaround. MinIO staging + `sourceUrl` is the only supported route from this workstation; the staging bucket (`mcp-staging` on `10.0.0.4:9100`) self-cleans after 1 day.
+
 
 ### Clipboard
 
