@@ -49,7 +49,7 @@ See [CLAUDE.md](CLAUDE.md) for config file schema and conventions.
 
 ```bash
 claude plugins marketplace add danielrosehill/Claude-Code-Plugins
-claude plugins install claude-transcription@danielrosehill
+claude plugins install transcription-pipeline@danielrosehill
 ```
 
 Then restart Claude Code.
