@@ -11,6 +11,9 @@ Single-pass transcription that drops fillers while preserving meaning.
 
 Call the `gemini-transcription` MCP tool with a cleaned preset or custom system prompt.
 
+Audio needs a URL for `file_url`: see `transcribe-gemini-raw` → *Getting the audio to Gemini*
+(Wasabi staging by default; a public repo's raw GitHub URL when building in public).
+
 ## System prompt
 
 > Transcribe this audio. Remove filler words (um, uh, er, ah, you know, like when used as a filler, I mean as a filler). Remove false starts and immediate repetitions. Preserve the speaker's meaning, tone, and vocabulary. Do NOT paraphrase, summarize, or reorder. Do NOT add headers or structure. Output plain running prose, paragraph breaks only at natural topic shifts.
