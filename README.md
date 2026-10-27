@@ -19,7 +19,7 @@ audio ──► preprocess ──► transcribe ──► post-process ──►
 ### Transcription
 - `transcribe-gemini-raw` — verbatim via gemini-transcription MCP.
 - `transcribe-gemini-cleaned` — filler words removed at transcription time.
-- `transcribe-assemblyai` — timestamped + diarization via AssemblyAI.
+- `transcribe-assemblyai` — opt-in (not the default) for word-level timestamps + speaker diarization via AssemblyAI.
 - `transcribe-whisper-local` — offline transcription via local Whisper.
 - `setup-whisper` — one-time local Whisper installation.
 
@@ -59,7 +59,7 @@ Then restart Claude Code.
 - `ffmpeg` — preprocessing
 - `python3` + `uv` — for skills that shell out to Python (DeepFilterNet, silero-vad, pyannote, whisper)
 - MCP servers: `gemini-transcription`, `gws-personal` (for Drive export)
-- API keys (set as env vars, names configurable): `AUPHONIC_API_KEY`, `ELEVENLABS_API_KEY`, `ASSEMBLYAI_API_KEY`, `DOLBY_API_KEY`
+- API keys (set as env vars, names configurable): `AUPHONIC_API_KEY`, `ELEVENLABS_API_KEY`, `DOLBY_API_KEY`; optional: `ASSEMBLYAI_API_KEY` (only for timestamps/diarization)
 
 ## License
 

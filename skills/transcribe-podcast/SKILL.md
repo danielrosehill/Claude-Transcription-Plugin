@@ -14,23 +14,23 @@ Both files are written to disk. The reading version is what gets pasted into blo
 
 ## Provider order
 
-Per plugin CLAUDE.md: **AssemblyAI first, Gemini MCP as fallback.**
+Per plugin CLAUDE.md: **Gemini via OpenRouter by default; AssemblyAI only on request.**
 
-1. Try `transcribe-assemblyai` (gives diarization + timestamps for free).
-2. If AssemblyAI is unavailable or fails, fall back to `transcribe-gemini-raw`.
+1. Default: `transcribe-gemini-raw` (`gemini-transcription` MCP). Gemini labels speakers from context when no timestamps are needed.
+2. Use `transcribe-assemblyai` only if the user wants word-level timestamps or diarized speaker labels.
 
-Do not ask the user which provider — just use AssemblyAI unless they specified one.
+Do not ask the user which provider — just use Gemini unless they specified one or asked for timestamps/diarization.
 
 ## Procedure
 
-1. **Transcribe via AssemblyAI** (`speaker_labels: true`, `punctuate: true`, `format_text: true`).
+1. **Transcribe via Gemini** (`transcribe_audio_raw`; ask it to label speakers from context). If the user wants timestamps/diarization, use AssemblyAI instead (`speaker_labels: true`, `punctuate: true`, `format_text: true`).
    - Save raw output to `<source_stem>.raw.md` — speaker-labelled prose, no timestamps in this file (timestamps are kept in the sidecar JSON for downstream skills). One paragraph per speaker turn.
-   - Also save `<source_stem>.assemblyai.json` (full API payload) for downstream tools.
+   - AssemblyAI path only: also save `<source_stem>.assemblyai.json` (full API payload) for downstream tools.
 2. **Produce the reading version** at `<source_stem>.podcast.md`:
    - Remove filler words: `um`, `uh`, `er`, `ah`, `you know` (filler use), `like` (filler use), `I mean` (filler use), `sort of`, `kind of` (filler use), `right?` (tic).
    - Remove false starts and immediate self-repetitions.
    - **Do not paraphrase, summarize, or reorder.** Preserve the speaker's meaning, vocabulary, and tone. This is a cleaned transcript, not a rewrite.
-   - Preserve speaker labels: `**Daniel:**`, `**Guest:**`, etc. If `<source_stem>_speakers.json` exists, use those names; otherwise use AssemblyAI's `A`/`B`/`C` mapped to `Speaker A` / `Speaker B` etc., and ask the user to confirm names if it's a 2+ speaker episode.
+   - Preserve speaker labels: `**Daniel:**`, `**Guest:**`, etc. If `<source_stem>_speakers.json` exists, use those names; otherwise use the provider's speaker labels (AssemblyAI: `A`/`B`/`C`) mapped to `Speaker A` / `Speaker B` etc., and ask the user to confirm names if it's a 2+ speaker episode.
    - Add `## ` section headers at natural topic transitions. Aim for one header every 3–8 minutes of content. Headers should be short, descriptive, sentence-case (`## Why diarization matters`, not `## Diarization`). Do not invent topics — derive headers from what's actually said.
    - Add a single `# <Episode Title>` at the top if the user supplied one (or it's inferable from the source filename); otherwise skip the H1.
 3. **Report** both file paths to the user, plus a one-line word-count and duration summary.
@@ -40,7 +40,7 @@ Do not ask the user which provider — just use AssemblyAI unless they specified
 | File | Contents |
 |------|----------|
 | `<stem>.raw.md` | Raw transcript, speaker labels, no editing |
-| `<stem>.assemblyai.json` | Full AssemblyAI JSON (timestamps, confidences) |
+| `<stem>.assemblyai.json` | Full AssemblyAI JSON (timestamps, confidences); AssemblyAI path only |
 | `<stem>.podcast.md` | Reading version — fillers removed, headers added |
 
 ## When to use
@@ -51,12 +51,12 @@ Do not ask the user which provider — just use AssemblyAI unless they specified
 
 ## When NOT to use
 
-- Single-speaker memo, voice note, or dictation → use `transcribe-assemblyai` or `transcribe-gemini-cleaned` directly.
-- Meeting / interview where the user only wants timestamps → `transcribe-assemblyai`.
+- Single-speaker memo, voice note, or dictation → use `transcribe-gemini-cleaned` directly.
+- Meeting / interview where the user wants timestamps or diarization → `transcribe-assemblyai`.
 - User explicitly wants only one output → use the underlying single-output skill.
 
 ## Notes
 
-- AssemblyAI cost is ~$0.37/hr with speaker labels. Flag if the audio is >4 hours.
+- If AssemblyAI is used, cost is ~$0.37/hr with speaker labels; flag if the audio is >4 hours.
 - The reading version is derived from the raw transcript, not re-transcribed — one API call total.
 - If section-header inference is unreliable on a particular episode (e.g. very meandering conversation), produce the cleaned prose with paragraph breaks only and tell the user headers were skipped.

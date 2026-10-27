@@ -74,7 +74,7 @@ Output: `<stem>.fixed.opus` in `audio/processed/`.
 After applying, re-render the spectrogram on the output and present it side-by-side with the original. Visual confirmation that the targeted bands actually got attenuated.
 
 Then either:
-- Hand off to `transcribe-assemblyai` (or whichever ASR), OR
+- Hand off to `transcribe-gemini-raw` (or whichever ASR; `transcribe-assemblyai` only for timestamps/diarization), OR
 - If the result still looks bad, escalate to `denoise` with a stronger backend, OR
 - Conclude that the audio is unsalvageable and report.
 

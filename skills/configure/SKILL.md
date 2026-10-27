@@ -65,9 +65,9 @@ Ask the user, in order:
 > Which transcription backends do you want to register? Pick any number; I'll ask for details on each.
 
 Suggestions (not exhaustive — accept any):
-- **Gemini multimodal** (cloud, via API or MCP)
+- **Gemini multimodal** (cloud, via OpenRouter MCP or API — recommended default)
 - **OpenAI Whisper API** (cloud, API)
-- **AssemblyAI** (cloud, API — adds diarization + timestamps)
+- **AssemblyAI** (cloud, API — optional; only for diarization + timestamps)
 - **Deepgram** (cloud, API)
 - **Local Whisper** (`faster-whisper` or `whisper.cpp`, local binary)
 - **Custom endpoint** (your own vLLM / llama.cpp / OpenAI-compatible server)
@@ -120,9 +120,9 @@ Beyond the full interview, support:
 For non-interactive setup (e.g., from a script):
 
 ```
-configure add transcription --alias gemini --type mcp --mcp-server jungle-shared__gemini-transcription --default
+configure add transcription --alias gemini --type mcp --mcp-server gemini-transcription --default
 configure add transcription --alias aai --type api --api-key-env ASSEMBLYAI_API_KEY
-configure set-default transcription aai
+# optional: keep gemini as default; use aai only when timestamps/diarization are needed
 ```
 
 ## Validation rules

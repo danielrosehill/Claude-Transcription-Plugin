@@ -15,11 +15,11 @@ Rationale: cloud providers are faster, higher-quality, and the cost is negligibl
 
 When a skill needs a transcript and the user hasn't named a provider, choose in this order:
 
-1. **AssemblyAI** — preferred default. Word-level timestamps, speaker diarization, robust on long-form audio. Cost ~$0.37/hr.
-2. **Gemini MCP** (`gemini-transcription`) — fallback when AssemblyAI is unavailable, the user explicitly asks for it, or the audio is short enough that diarization is unnecessary.
+1. **Gemini via OpenRouter** (`gemini-transcription` MCP, `transcribe_audio_raw` / `transcribe_audio`) — default. The `model` argument accepts `flash` or any full OpenRouter model ID. Gemini can label speakers from context when no timestamps are needed.
+2. **AssemblyAI** — opt-in, only when word-level timestamps or speaker diarization are explicitly needed. Cost ~$0.37/hr.
 3. **Whisper local** — only if `prefer_local: true` or explicitly requested.
 
-Skills that orchestrate transcription (e.g. `transcribe-podcast`) should call AssemblyAI first and fall back to Gemini only on failure.
+Skills that orchestrate transcription (e.g. `transcribe-podcast`) should use Gemini first, and switch to AssemblyAI only when the user asks for timestamps or diarized speaker labels.
 
 ## Config file
 
@@ -41,7 +41,7 @@ Schema:
 
 Defaults if config missing:
 - `denoise_provider`: `auphonic` (cheapest cloud option)
-- `transcription_provider`: `assemblyai`
+- `transcription_provider`: `gemini`
 - `default_output_dir`: directory of source audio file
 - `prefer_local`: `false`
 
