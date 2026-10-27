@@ -1,6 +1,6 @@
 ---
 name: preprocess-for-transcription
-description: Prepare audio for transcription — format normalise (mono/16kHz/opus), loudness normalise (EBU R128), and collapse long silences (silero-vad). Optional denoise pass. Use before sending to AssemblyAI or any ASR for cleaner results, smaller uploads, and lower cost. Use when the user asks to "preprocess audio", "prep for transcription", "clean up a recording before sending it", or just hands over a raw voice memo to be transcribed.
+description: Prepare audio for transcription — format normalise (mono/16kHz/opus), loudness normalise (EBU R128), and collapse long silences (silero-vad). Optional denoise pass. Use before sending to any ASR (Gemini, AssemblyAI, Whisper) for cleaner results, smaller uploads, and lower cost. Use when the user asks to "preprocess audio", "prep for transcription", "clean up a recording before sending it", or just hands over a raw voice memo to be transcribed.
 ---
 
 # Preprocess audio for transcription

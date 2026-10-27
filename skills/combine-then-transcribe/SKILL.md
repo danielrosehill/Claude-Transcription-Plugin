@@ -62,11 +62,11 @@ Durations come from `ffprobe -i <file> -show_entries format=duration`. This side
 
 ### 4. Preprocess + transcribe
 
-Invoke `preprocess-for-transcription` on the combined file (silence-trim is fine here — boundary silences are 1s, well under the 2.5s threshold, so they'll be preserved as boundary cues). Then invoke `transcribe-assemblyai` (or whichever ASR the user picked).
+Invoke `preprocess-for-transcription` on the combined file (silence-trim is fine here — boundary silences are 1s, well under the 2.5s threshold, so they'll be preserved as boundary cues). Then invoke `transcribe-gemini-raw` (default), or `transcribe-assemblyai` if the user wants timestamps/diarization (needed for the split-back step below).
 
 ### 5. Optional — split transcript by source
 
-After transcription, offer to split the resulting transcript back into per-source files using the segment map and AssemblyAI's word-level timestamps. Output: `transcripts/<source-stem>.from-combined.md` for each source.
+After transcription, offer to split the resulting transcript back into per-source files using the segment map and word-level timestamps (requires the AssemblyAI path). Output: `transcripts/<source-stem>.from-combined.md` for each source.
 
 ## Folder convention
 
@@ -83,12 +83,12 @@ Combined:     audio/processed/session.combined.opus (mono 16kHz, 4.1 MB)
 Segment map:  audio/processed/session.segments.json
 Boundaries:   1.0s silence between each source
 
-Next: send to AssemblyAI? (y/n)
+Next: send to transcription? (y/n)
 ```
 
 ## Edge cases
 
 - **Mixed codecs / sample rates**: must re-encode (lossy concat, but for ASR purposes irrelevant). Warn the user.
 - **One file is corrupt / unreadable**: skip it, log warning, continue with the rest. Don't fail the whole job.
-- **Total combined length > 4 hours**: AssemblyAI handles it but costs add up — flag the estimated cost (~$0.37/hr with diarisation) before submitting.
+- **Total combined length > 4 hours**: costs add up — flag the estimated cost before submitting (AssemblyAI: ~$0.37/hr with diarisation).
 - **User passes a single file**: just route directly to `preprocess-for-transcription` + transcribe; no concat needed.

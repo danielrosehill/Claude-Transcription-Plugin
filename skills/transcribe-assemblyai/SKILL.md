@@ -1,6 +1,6 @@
 ---
 name: transcribe-assemblyai
-description: Transcribe audio via AssemblyAI with word-level timestamps and speaker diarization. Best for meetings, interviews, and anything needing speaker labels or timecodes. Use when the user asks for a timestamped transcript, diarized transcript, or multi-speaker transcription.
+description: Opt-in, not the default engine (default is Gemini via OpenRouter). Transcribe audio via AssemblyAI only when word-level timestamps or speaker diarization are explicitly needed. Use when the user asks for a timestamped transcript, diarized transcript, or per-speaker timecodes.
 ---
 
 # Transcribe (AssemblyAI, timestamped + diarized)

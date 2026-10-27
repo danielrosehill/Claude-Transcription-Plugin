@@ -46,8 +46,13 @@ ping_with_query() {
 printf "$ROW_FMT" "Provider" "Env var" "Status"
 printf -- "─────────────────────────────────────────────────\n"
 
+# AssemblyAI is optional (timestamps/diarization only): missing is not a failure.
+if [[ -z "${ASSEMBLYAI_API_KEY:-}" ]]; then
+  printf "$ROW_FMT" "AssemblyAI" "ASSEMBLYAI_API_KEY" "not configured (optional)"
+else
 ping_with_header "AssemblyAI"    "ASSEMBLYAI_API_KEY" \
   "https://api.assemblyai.com/v2/transcript?limit=1" "Authorization"
+fi
 
 ping_with_header "OpenRouter"    "OPENROUTER_API_KEY" \
   "https://openrouter.ai/api/v1/auth/key" "Authorization: Bearer"

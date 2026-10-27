@@ -35,7 +35,7 @@ PY
 
 ## After labeling
 
-User updates the JSON or renames the sample files. Downstream transcription skills (e.g. `transcribe-assemblyai`) consume `_speakers.json` for speaker name mapping.
+User updates the JSON or renames the sample files. Downstream transcription skills (e.g. `transcribe-assemblyai`, or Gemini transcription) consume `_speakers.json` for speaker name mapping.
 
 ## Output convention
 

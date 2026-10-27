@@ -11,7 +11,7 @@ Cheap end-to-end check that the API keys this plugin depends on are (a) present 
 
 | Provider | Env var | Used by |
 |---|---|---|
-| AssemblyAI | `ASSEMBLYAI_API_KEY` | `transcribe-assemblyai` |
+| AssemblyAI (optional) | `ASSEMBLYAI_API_KEY` | `transcribe-assemblyai` (timestamps/diarization only) |
 | OpenRouter (Gemini) | `OPENROUTER_API_KEY` | `gemini-transcription` MCP, `transcribe-gemini-*` skills |
 | Google Gemini (direct) | `GEMINI_API_KEY` | optional alt path for Gemini skills |
 
@@ -52,12 +52,12 @@ Render a compact status table:
 ```
 Provider       Env var                 Status
 ─────────────────────────────────────────────────
-AssemblyAI     ASSEMBLYAI_API_KEY      OK (200)
+AssemblyAI      ASSEMBLYAI_API_KEY      not configured (optional)
 OpenRouter     OPENROUTER_API_KEY      MISSING
 Gemini direct  GEMINI_API_KEY          OK (200)
 ```
 
-For any `MISSING` or non-OK row, suggest the fix:
+A missing AssemblyAI key is **not a failure**: report it as `not configured (optional)`. For any other `MISSING` or non-OK row, suggest the fix:
 - Missing → "set in `~/.bashrc` / `~/.zshrc` and reload, or add to `~/.claude/settings.json` `env`"
 - 401 → "key is set but rejected; rotate or check for stray whitespace"
 
