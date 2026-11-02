@@ -1,5 +1,8 @@
 # Claude-Transcription
 
+> **Superseded (2026-11-02) by [Transcription-Pipeline](https://github.com/danielrosehill/Transcription-Pipeline).** The successor takes over this plugin's name, `transcription-pipeline`, in the `danielrosehill` marketplace, so installing or updating now gets the new version (3.0.0). This repo is no longer maintained. What changed and what was carried over: [docs/prior-art.md](https://github.com/danielrosehill/Transcription-Pipeline/blob/main/docs/prior-art.md).
+
+
 End-to-end audio-to-transcript pipeline as a Claude Code plugin. Preprocess long-form recordings, transcribe via cloud or local engines, post-process into clean/structured/blog/summary formats, combine versions, and export.
 
 ## Pipeline
