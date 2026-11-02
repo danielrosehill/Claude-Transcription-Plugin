@@ -12,7 +12,7 @@ Single-pass transcription that drops fillers while preserving meaning.
 Call the `gemini-transcription` MCP tool with a cleaned preset or custom system prompt.
 
 Audio needs a URL for `file_url`: see `transcribe-gemini-raw` → *Getting the audio to Gemini*
-(Wasabi staging by default; a public repo's raw GitHub URL when building in public).
+(`cloud-storage:stage-file` by default; a public repo's raw GitHub URL when building in public).
 
 ## System prompt
 

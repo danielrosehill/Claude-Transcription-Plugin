@@ -13,9 +13,9 @@ Call the `gemini-transcription` MCP tool `transcribe_audio_raw` (or `transcribe_
 
 ## Getting the audio to Gemini (`file_url`)
 
-The MCP fetches audio by URL, so a local file needs one. Default route: stage it in the
-Wasabi bucket `danielrosehill-ephemeral-staging` and pass a presigned URL
-(`~/.claude/context/file-staging.md`).
+The MCP fetches audio by URL, so a local file needs one. Default route: stage it with
+`cloud-storage:stage-file` (`stage.sh <file>` → presigned URL for `file_url`; delete after).
+Don't improvise another route.
 
 **Build-in-public shortcut.** When the audio is going into a **public** repo anyway (an idea
 voice note seeding a new public repo, a recording that is part of the project), skip staging:
@@ -30,9 +30,9 @@ Check it with `curl -sIL <url>` (expect 200 and a non-zero `content-length`) bef
 the tool.
 
 - **Public repos only.** Private raw URLs need a token; Gemini cannot fetch them and you get
-  a fetch error or an empty result. Use Wasabi for those.
+  a fetch error or an empty result. Stage those with `cloud-storage:stage-file`.
 - **Size:** GitHub rejects files over 100 MB and warns above 50 MB. Compress
-  (`normalize-format`) or use Wasabi.
+  (`normalize-format`) or stage it with `cloud-storage:stage-file`.
 - **Permanent:** the file stays in public git history even if deleted later. Only use this
   when publishing the audio is the intent, not as a convenience for private recordings.
 - **Filenames:** URL-encode spaces (`%20`) or rename the file to a slug before committing.
