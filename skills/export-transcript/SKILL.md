@@ -7,6 +7,10 @@ description: Export a transcript (or any pipeline output) by emailing it, upload
 
 Send a transcript file (or post-processed variant) to a destination.
 
+## 1. Load your settings
+
+Read `export-transcript.md` from `$CLAUDE_USER_DATA/transcription-pipeline/`, else `~/.claude-user-data/transcription-pipeline/`, if it exists; its notes win over the defaults below.
+
 ## Destinations
 
 ### Email
@@ -22,9 +26,9 @@ When attaching the transcript file, the same staging rule as Drive applies — t
 
 ### Google Drive
 
-Use the `gws-personal` MCP. **The Google Workspace MCP runs on a remote server** — it cannot read workstation paths like `/home/daniel/...`. The canonical upload path is **staging + `fileUrl`**:
+Use the `gws-personal` MCP. **The Google Workspace MCP runs on a remote server** — it cannot read workstation paths like `/home/<user>/...`. The canonical upload path is **staging + `fileUrl`**:
 
-1. Stage the transcript with the `cloud-storage:stage-file` skill (Daniel's setup: `~/repos/github/ai-agents-and-prompts/ai-claude-plugins/Cloud-Storage-Plugin/scripts/stage.sh /path/to/transcript.md`). It prints JSON `{store,bucket,key,url}`; use `.url` (presigned GET) below.
+1. Stage the transcript with the `cloud-storage:stage-file` skill (use the staging script path from your notes). It prints JSON `{store,bucket,key,url}`; use `.url` (presigned GET) below.
 2. `create_folder` if the user specified a new folder name (or reuse an existing one via `search`).
 3. Call the MCP's `create_drive_file` tool with `fileUrl: <presigned URL>` and `folder_id: <folder-id>`. **Do not** pass a workstation `file_path`/`sourcePath` — that param is server-local only.
 4. If the transcript is markdown and the user wants it editable, use `create_google_doc` with the content inline instead.

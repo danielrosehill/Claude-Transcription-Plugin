@@ -8,7 +8,7 @@ description: Transcribe a podcast episode and produce two outputs in one pass �
 Single skill that yields **both** outputs the user wants every time for a podcast:
 
 1. **Raw transcript** — exactly what the transcription API returned, no editing. Source of truth.
-2. **Podcast reading version** — same content, formatted for human reading: filler words removed, false starts cleaned, paragraph breaks at natural topic shifts, section headers (`## Topic`) added, speaker labels preserved (`**Daniel:** ...`).
+2. **Podcast reading version** — same content, formatted for human reading: filler words removed, false starts cleaned, paragraph breaks at natural topic shifts, section headers (`## Topic`) added, speaker labels preserved (`**Host:** ...`).
 
 Both files are written to disk. The reading version is what gets pasted into blog posts, show notes, or summaries; the raw version stays for verification.
 
@@ -30,7 +30,7 @@ Do not ask the user which provider — just use Gemini unless they specified one
    - Remove filler words: `um`, `uh`, `er`, `ah`, `you know` (filler use), `like` (filler use), `I mean` (filler use), `sort of`, `kind of` (filler use), `right?` (tic).
    - Remove false starts and immediate self-repetitions.
    - **Do not paraphrase, summarize, or reorder.** Preserve the speaker's meaning, vocabulary, and tone. This is a cleaned transcript, not a rewrite.
-   - Preserve speaker labels: `**Daniel:**`, `**Guest:**`, etc. If `<source_stem>_speakers.json` exists, use those names; otherwise use the provider's speaker labels (AssemblyAI: `A`/`B`/`C`) mapped to `Speaker A` / `Speaker B` etc., and ask the user to confirm names if it's a 2+ speaker episode.
+   - Preserve speaker labels: `**Host:**`, `**Guest:**`, etc. If `<source_stem>_speakers.json` exists, use those names; otherwise use the provider's speaker labels (AssemblyAI: `A`/`B`/`C`) mapped to `Speaker A` / `Speaker B` etc., and ask the user to confirm names if it's a 2+ speaker episode.
    - Add `## ` section headers at natural topic transitions. Aim for one header every 3–8 minutes of content. Headers should be short, descriptive, sentence-case (`## Why diarization matters`, not `## Diarization`). Do not invent topics — derive headers from what's actually said.
    - Add a single `# <Episode Title>` at the top if the user supplied one (or it's inferable from the source filename); otherwise skip the H1.
 3. **Report** both file paths to the user, plus a one-line word-count and duration summary.

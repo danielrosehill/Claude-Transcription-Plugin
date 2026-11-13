@@ -7,6 +7,10 @@ description: Transcribe audio locally using Whisper (offline, no cloud). Use whe
 
 Offline transcription with Whisper. Requires `setup-whisper` to have been run once.
 
+## 1. Load your settings
+
+Read `transcribe-whisper-local.md` from `$CLAUDE_USER_DATA/transcription-pipeline/`, else `~/.claude-user-data/transcription-pipeline/`, if it exists; its notes win over the defaults below.
+
 ## Preferred implementation
 
 **faster-whisper** (CTranslate2 backend) — 4x faster than openai-whisper at similar accuracy.
@@ -31,7 +35,7 @@ Config `whisper_model` in config.json (default `medium`).
 
 ## GPU
 
-Daniel's workstation has an AMD GPU. faster-whisper supports ROCm via CTranslate2 builds but it's fragile; default CPU unless user has set `whisper_device: "cuda"` / `"rocm"`.
+If the workstation has an AMD GPU, faster-whisper supports ROCm via CTranslate2 builds but it's fragile; default to CPU unless user has set `whisper_device: "cuda"` / `"rocm"`.
 
 ## Output convention
 

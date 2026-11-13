@@ -13,7 +13,7 @@ Read a transcript and pull out *durable* facts about the speaker — things that
 |---|---|
 | "I live in Jerusalem" | "I'm running late today" |
 | "I work for DSR Holdings" | "This morning I had coffee" |
-| "My business email is daniel@dsrholdings.cloud" | "I just sent that email" |
+| "My business email is alex@example.com" | "I just sent that email" |
 | "I prefer tabs over spaces" | "I'm annoyed at this bug" |
 | "I'm working on the Claude-Transcription-Plugin repo" | "I committed to that branch" |
 | "My partner's name is …" | "She called me earlier" |
@@ -52,7 +52,7 @@ Group by category (Identity / Work / Preferences / Relationships / Open initiati
 
 ## De-duplication
 
-Before writing, scan existing `context/extracted-*.md` files (and optionally `~/.claude/projects/-home-daniel/memory/` if asked). For each candidate fact:
+Before writing, scan existing `context/extracted-*.md` files (and optionally `~/.claude/projects/<project>/memory/` if asked). For each candidate fact:
 
 1. **Already recorded, identical** → skip silently
 2. **Already recorded, contradicting** → flag in output under `## Updates / contradictions` so the user can adjudicate (don't auto-overwrite)
@@ -67,12 +67,12 @@ _No new context extracted from <source>. All facts already on file._
 
 ## Optional: write to auto-memory
 
-If the user has `~/.claude/projects/-home-daniel/memory/` (Daniel does), offer to also append durable facts there:
+If the user has `~/.claude/projects/<project>/memory/`, offer to also append durable facts there:
 
 ```
 Found 3 new facts. Save to:
   [x] context/extracted-2026-04-28.md
-  [ ] ~/.claude/projects/-home-daniel/memory/  (auto-memory, persists across sessions)
+  [ ] ~/.claude/projects/<project>/memory/  (auto-memory, persists across sessions)
 ```
 
 Default off — only write to memory when the user explicitly opts in. Auto-memory has its own structure (one fact per file, frontmatter, MEMORY.md index) and shouldn't be polluted casually.
