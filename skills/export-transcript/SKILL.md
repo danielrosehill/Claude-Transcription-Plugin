@@ -18,15 +18,15 @@ Prompt user for:
 - Subject (default: file's H1 heading or stem)
 - Body: either inline content or short cover note with the transcript as attachment
 
-When attaching the transcript file, the same staging rule as Drive applies — the GWS MCP runs on `residencehome` and can't read workstation paths. Stage it with the `cloud-storage:stage-file` skill (below) and pass the presigned GET URL as the attachment's `url`. The send-* email skills cover this.
+When attaching the transcript file, the same staging rule as Drive applies — the Google Workspace MCP typically runs on a remote host and can't read workstation paths. Stage it with the `cloud-storage:stage-file` skill (below) and pass the presigned GET URL as the attachment's `url`. The send-* email skills cover this.
 
 ### Google Drive
 
-Use the `gws-personal` MCP. **The GWS MCP runs on `residencehome`** — it cannot read workstation paths like `/home/daniel/...`. The canonical upload path is **staging + `fileUrl`**:
+Use the `gws-personal` MCP. **The Google Workspace MCP runs on a remote server** — it cannot read workstation paths like `/home/daniel/...`. The canonical upload path is **staging + `fileUrl`**:
 
 1. Stage the transcript with the `cloud-storage:stage-file` skill (Daniel's setup: `~/repos/github/ai-agents-and-prompts/ai-claude-plugins/Cloud-Storage-Plugin/scripts/stage.sh /path/to/transcript.md`). It prints JSON `{store,bucket,key,url}`; use `.url` (presigned GET) below.
 2. `create_folder` if the user specified a new folder name (or reuse an existing one via `search`).
-3. Call `mcp__gateway__google-workspace-personal__create_drive_file` with `fileUrl: <presigned URL>` and `folder_id: <folder-id>`. **Do not** pass a workstation `file_path`/`sourcePath` — that param is residencehome-local only.
+3. Call the MCP's `create_drive_file` tool with `fileUrl: <presigned URL>` and `folder_id: <folder-id>`. **Do not** pass a workstation `file_path`/`sourcePath` — that param is server-local only.
 4. If the transcript is markdown and the user wants it editable, use `create_google_doc` with the content inline instead.
 5. Optionally `share_file` if the user wants a shareable link.
 
